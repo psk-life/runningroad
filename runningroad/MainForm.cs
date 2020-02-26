@@ -7,12 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace runningroad
 {
     public partial class MainForm : Form
     {
-        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, choice1 = 1, choice2 = 4;
+        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, trigger0 = 0, choice1 = 1, choice2 = 4;
         public double xcenter, ycenter, a1, n, dzy, mply, x, z, dx, dz;
 
         private void radioButton5_CheckedChanged(object sender, EventArgs e)
@@ -50,6 +51,7 @@ namespace runningroad
         public Pen myPen3 = new Pen(Color.Yellow, 1);
         public Pen myPen;
         public Graphics g = null;
+        public Thread mythreadrunit;
 
         public MainForm()
         {
@@ -61,6 +63,8 @@ namespace runningroad
             a1 = 25.0;
             mply = 40.0;
             dz = 0.1;
+            mythreadrunit = new Thread(RunIt);
+            //mythreadrunit.Start();
         }
 
         public void trackBarOpacity_MouseUp(object sender, MouseEventArgs e)
@@ -93,19 +97,38 @@ namespace runningroad
 
         private void buttonStartStop_MouseClick(object sender, MouseEventArgs e)
         {
-            RunIt();
+            //RunIt();
+            trigger0 += 1;
+            //ActiveForm.Refresh();
+            startx = 0;
+            stopx = MainForm.ActiveForm.Width - 17;
+            starty = 65;
+            stopy = MainForm.ActiveForm.Height - 104;
+            g = this.CreateGraphics();
+            //mythreadrunit.Start();
+
+            switch (trigger0)
+            {
+                case 1:
+                    mythreadrunit.Start();
+                    break;
+
+                case 2:
+                    mythreadrunit.Abort(); //Thread.Sleep(1000);
+                    break;
+
+                case 3:
+                    //Thread.Sleep(1000);
+                    trigger0 = 2;
+                    break;
+            }
         }
 
         public void RunIt()
         {
-            ActiveForm.Refresh();
-            startx = 0;
-            stopx = MainForm.ActiveForm.Width - 17;
-            starty = 65;
-            stopy = MainForm.ActiveForm.Height - 89;
-            g = this.CreateGraphics();
             //Rectangle r = new Rectangle(startx,starty,stopx,stopy);
             //g.DrawRectangle(myPen1, r);
+            //g.DrawEllipse(myPen3, 100, 100, 1, 1);
 
             double[] hhor = new double[stopx];
             double[] lhor = new double[stopx];
@@ -116,7 +139,7 @@ namespace runningroad
                 lhor[ii] = Convert.ToDouble(stopy);
             }
             xcenter = (Convert.ToDouble(stopx) - Convert.ToDouble(startx)) / 2.0 + 1.0;
-            ycenter = (Convert.ToDouble(stopy) - Convert.ToDouble(starty)) * 4.0 / 3.6;
+            ycenter = (Convert.ToDouble(stopy) - Convert.ToDouble(starty)) * 6.0 / 5.0;
 
             n = 4.0 * Math.PI / dz + 1.0;
             dzy = 4.0 * Math.PI * Math.Cos(a1 * Math.PI / 180.0) / n;
@@ -171,16 +194,37 @@ namespace runningroad
 
         public void drawchoice()
         {
+            int chchoice;
+            chchoice = choice1;
+            if (xx1 < 0) { choice1 = 3; }
+            if (xx2 < 0) { choice1 = 3; }
+            if (yy1 < 65) { choice1 = 3; }
+            if (yy2 < 65) { choice1 = 3; }
+            if (xx1 > stopx) { choice1 = 3; }
+            if (xx2 > stopx) { choice1 = 3; }
+            if (yy1 > stopy) { choice1 = 3; }
+            if (yy2 > stopy) { choice1 = 3; }
+
             switch (choice1)
             {
                 case 1:
+                    g.DrawEllipse(myPen, xx1, yy1, 1, 0);
+                    g.DrawEllipse(myPen, xx2, yy2, 0, 1);
                     g.DrawLine(myPen, xx1, yy1, xx2, yy2);
-                break;
+                    break;
 
                 case 2:
                     if ((yy1 <= stopy) && (yy1 >= starty) && (yy2 <= stopy) && (yy2 >= starty) && (xx1 <= stopx) && (xx1 >= startx) && (xx2 <= stopx) && (xx2 >= startx) && (xx1 != xx2) && (yy1 != yy2))
-                    { g.DrawLine(myPen, xx1, yy1, xx2, yy2); }
-                break;
+                    {
+                        g.DrawEllipse(myPen, xx1, yy1, 1, 0);
+                        g.DrawEllipse(myPen, xx2, yy2, 0, 1);
+                        g.DrawLine(myPen, xx1, yy1, xx2, yy2);
+                    }
+                    break;
+
+                case 3:
+                    choice1 = chchoice;
+                    break;
             }
         }
 
