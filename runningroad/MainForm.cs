@@ -13,8 +13,9 @@ namespace runningroad
 {
     public partial class MainForm : Form
     {
-        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, trigger0 = 0, choice1 = 1, choice2 = 4;
+        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, trigger0 = 0, choice1 = 1, choice2 = 4, pointnumber, mmmm;
         public double xcenter, ycenter, a1, n, dzy, mply, x, z, dx, dz;
+        public int[,] myArr = new int[1000000, 3];
 
         private void radioButton5_CheckedChanged(object sender, EventArgs e)
         {
@@ -115,11 +116,19 @@ namespace runningroad
 
                 case 2:
                     mythreadrunit.Abort(); //Thread.Sleep(1000);
+                    label4count(mmmm);
+                    buttonStartStop.Text = "Stopped";
                     break;
 
                 case 3:
+                    drawarrpoints();
+                    break;
+
+                case 4:
                     //Thread.Sleep(1000);
-                    trigger0 = 2;
+                    trigger0 = 3;
+                    buttonStartStop.Text = "Normally stopped. Reopen app.";
+                    buttonStartStop.Enabled = false;
                     break;
             }
         }
@@ -204,21 +213,37 @@ namespace runningroad
             if (xx2 > stopx) { choice1 = 3; }
             if (yy1 > stopy) { choice1 = 3; }
             if (yy2 > stopy) { choice1 = 3; }
+            pointnumber += 1;
 
             switch (choice1)
             {
                 case 1:
+                    if (pointnumber < 1000000)
+                    {
+                        myArr[pointnumber, 0] = xx1;
+                        myArr[pointnumber, 1] = yy1;
+                        myArr[pointnumber, 2] = nn;
+                    }
+                    
                     g.DrawEllipse(myPen, xx1, yy1, 1, 0);
                     g.DrawEllipse(myPen, xx2, yy2, 0, 1);
                     g.DrawLine(myPen, xx1, yy1, xx2, yy2);
+                    mmmm += 1;
                     break;
 
                 case 2:
                     if ((yy1 <= stopy) && (yy1 >= starty) && (yy2 <= stopy) && (yy2 >= starty) && (xx1 <= stopx) && (xx1 >= startx) && (xx2 <= stopx) && (xx2 >= startx) && (xx1 != xx2) && (yy1 != yy2))
                     {
+                        if (pointnumber < 1000000)
+                        {
+                            myArr[pointnumber, 0] = xx1;
+                            myArr[pointnumber, 1] = yy1;
+                            myArr[pointnumber, 2] = nn;
+                        }
                         g.DrawEllipse(myPen, xx1, yy1, 1, 0);
                         g.DrawEllipse(myPen, xx2, yy2, 0, 1);
                         g.DrawLine(myPen, xx1, yy1, xx2, yy2);
+                        mmmm += 1;
                     }
                     break;
 
@@ -268,6 +293,24 @@ namespace runningroad
             int xp;
             xp = Convert.ToInt32(x / dx);
             return (xp);
+        }
+
+        public void label4count(int mmmm)
+        {
+            label4.Text = Convert.ToString(mmmm);
+        }
+
+        public void drawarrpoints()
+        {
+            ActiveForm.Refresh();
+            if (mmmm > 1000000) { mmmm = 1000000; }
+            for (i=0; i<mmmm; i++)
+            {
+                xx1 = myArr[i, 0];
+                yy1 = myArr[i, 1];
+                //nn = myArr[i, 2];
+                g.DrawEllipse(myPen2, xx1, yy1, 1, 0);
+            }
         }
     }
 }

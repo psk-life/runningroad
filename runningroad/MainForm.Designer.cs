@@ -45,6 +45,7 @@
             this.buttonStartStop = new System.Windows.Forms.Button();
             this.trackBarOpacity = new System.Windows.Forms.TrackBar();
             this.trackBarSize = new System.Windows.Forms.TrackBar();
+            this.label4 = new System.Windows.Forms.Label();
             this.ControlPanel.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -59,6 +60,7 @@
             this.ControlPanel.AutoSize = true;
             this.ControlPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ControlPanel.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.ControlPanel.Controls.Add(this.label4);
             this.ControlPanel.Controls.Add(this.label3);
             this.ControlPanel.Controls.Add(this.label2);
             this.ControlPanel.Controls.Add(this.label1);
@@ -280,6 +282,17 @@
             this.trackBarSize.Value = 4;
             this.trackBarSize.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBarSize_MouseUp);
             // 
+            // label4
+            // 
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label4.ForeColor = System.Drawing.Color.Gold;
+            this.label4.Location = new System.Drawing.Point(451, 24);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(102, 15);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "COUNT";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -329,6 +342,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.RadioButton radioButton5;
         private System.Windows.Forms.RadioButton radioButton6;
+        private System.Windows.Forms.Label label4;
     }
 }
 
