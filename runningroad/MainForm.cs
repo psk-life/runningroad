@@ -13,7 +13,7 @@ namespace runningroad
 {
     public partial class MainForm : Form
     {
-        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, zz1, zz2, i, j, nn, trigger0 = 0, choice1 = 1, choice2 = 4, pointnumber, mmmm;
+        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, zz1, zz2, i, j, nn, trigger0 = 0, trigger1 = 0, choice1 = 1, choice2 = 4, pointnumber, mmmm;
         public double xcenter, ycenter, a1, n, dzy, mply, x, z, z2, dx, dz;
         public int[,] myArr = new int[1000000, 3];
 
@@ -47,7 +47,7 @@ namespace runningroad
             choice1 = 2;
         }
 
-        public Pen myPen1 = new Pen(Color.White, 1);
+        public Pen myPen1 = new Pen(Color.Aquamarine, 1);
         public Pen myPen2 = new Pen(Color.OrangeRed, 1);
         public Pen myPen3 = new Pen(Color.Gold, 1);
         public Pen myPen;
@@ -66,14 +66,14 @@ namespace runningroad
             mply = 40.0;
             dz = 0.1;
             threadrunit = new Thread(RunIt);
-            threadrunit.Priority = ThreadPriority.Highest;
+            threadrunit.Priority = ThreadPriority.AboveNormal;
             //threaddrawarrpoints = new Thread(drawarrpoints);
             //threaddrawarrpoints.Priority = ThreadPriority.Highest;
         }
 
         public void trackBarOpacity_MouseUp(object sender, MouseEventArgs e)
         {
-            MainForm.ActiveForm.Opacity = Convert.ToDouble(trackBarOpacity.Value) / 10;
+            MainForm.ActiveForm.Opacity = Convert.ToDouble(trackBarOpacity.Value) / 10.0;
             ActiveForm.Refresh();
         }
 
@@ -84,12 +84,12 @@ namespace runningroad
 
         public void trackBarDZ_MouseUp(object sender, MouseEventArgs e)
         {
-            dz = Convert.ToDouble(trackBarDZ.Value) / 50;
+            dz = Convert.ToDouble(trackBarDZ.Value) / 50.0;
         }
 
         public void trackBarDY_MouseUp(object sender, MouseEventArgs e)
         {
-            mply = Convert.ToDouble(trackBarDY.Value) * 10;
+            mply = Convert.ToDouble(trackBarDY.Value) * 10.0;
         }
 
         public void trackBarSize_MouseUp(object sender, MouseEventArgs e)
@@ -142,16 +142,17 @@ namespace runningroad
             //g.DrawRectangle(myPen1, r);
             //g.DrawEllipse(myPen3, 100, 100, 1, 1);
 
-            double[] hhor = new double[stopx];
-            double[] lhor = new double[stopx];
+            int[] hhor = new int[stopx+1];
+            int[] lhor = new int[stopx+1];
 
-            foreach (int ii in hhor)
-            {
-                hhor[ii] = Convert.ToDouble(-stopy);
-                lhor[ii] = Convert.ToDouble(stopy);
-            }
             xcenter = (Convert.ToDouble(stopx) - Convert.ToDouble(startx)) / 2.0 + 1.0;
-            ycenter = (Convert.ToDouble(stopy) - Convert.ToDouble(starty)) * 6.0 / 5.0;
+            ycenter = (Convert.ToDouble(stopy) - Convert.ToDouble(starty));
+
+            for (i = 0; i < stopx + 1; i++)
+            {
+                hhor[i] = Convert.ToInt32(-stopy);
+                lhor[i] = Convert.ToInt32(stopy);
+            }
 
             n = 4.0 * Math.PI / dz + 1.0;
             dzy = 4.0 * Math.PI * Math.Cos(a1 * Math.PI / 180.0) / n;
@@ -163,11 +164,12 @@ namespace runningroad
                 x = -2.0 * Math.PI;
                 xx1 = xpix(x, dx);
                 yy1 = ypix(x, z, dzy, i, mply);
-                if (yy1 > hhor[0]) { hhor[0] = yy1; }
-                if (yy1 < lhor[0]) { lhor[0] = yy1; }
+                if (yy1 > hhor[1]) { hhor[1] = yy1; }
+                if (yy1 < lhor[1]) { lhor[1] = yy1; }
 
-                for (j = 1; j < stopx; j++)
+                for (j = 1; j <= stopx; j++)
                 {
+                    trigger1 = 0;
                     x = -2.0 * Math.PI + Convert.ToDouble(j) * dx;
                     xx3 = xpix(x, dx);
                     yy3 = ypix(x, z, dzy, i, mply);
@@ -180,13 +182,14 @@ namespace runningroad
                     if (yy3 <= lhor[j])
                     {
                         lhor[j] = yy3;
-                        myPen = myPen2;
+                        myPen = myPen1;
                         mline(xx3, yy3);
                     }
                     if ((yy3 < hhor[j]) && (yy3 > lhor[j]))
                     {
                         xx1 = Convert.ToInt32(xx3 + xcenter);
                         yy1 = Convert.ToInt32(ycenter - yy3);
+                        trigger1 = 1;
                     }
                 }
             }
@@ -197,8 +200,17 @@ namespace runningroad
             xx2 = Convert.ToInt32(xx + xcenter);
             yy2 = Convert.ToInt32(ycenter - yy);
             drawchoice();
-            xx1 = xx2;
-            yy1 = yy2;
+
+            switch (trigger1)
+            {
+                case 0:
+                    xx1 = xx2;
+                    yy1 = yy2;
+                    break;
+
+                case 1:
+                     break;
+            }
         }
 
         public void drawchoice()

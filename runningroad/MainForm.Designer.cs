@@ -270,7 +270,7 @@
             this.trackBarDY.Size = new System.Drawing.Size(60, 45);
             this.trackBarDY.TabIndex = 4;
             this.trackBarDY.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.trackBarDY.Value = 4;
+            this.trackBarDY.Value = 3;
             this.trackBarDY.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBarDY_MouseUp);
             // 
             // trackBarDZ
