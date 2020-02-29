@@ -28,7 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.ControlPanel = new System.Windows.Forms.Panel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -45,7 +50,6 @@
             this.buttonStartStop = new System.Windows.Forms.Button();
             this.trackBarOpacity = new System.Windows.Forms.TrackBar();
             this.trackBarSize = new System.Windows.Forms.TrackBar();
-            this.label4 = new System.Windows.Forms.Label();
             this.ControlPanel.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -60,6 +64,9 @@
             this.ControlPanel.AutoSize = true;
             this.ControlPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ControlPanel.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.ControlPanel.Controls.Add(this.label6);
+            this.ControlPanel.Controls.Add(this.progressBar1);
+            this.ControlPanel.Controls.Add(this.label5);
             this.ControlPanel.Controls.Add(this.label4);
             this.ControlPanel.Controls.Add(this.label3);
             this.ControlPanel.Controls.Add(this.label2);
@@ -78,6 +85,47 @@
             this.ControlPanel.Name = "ControlPanel";
             this.ControlPanel.Size = new System.Drawing.Size(624, 65);
             this.ControlPanel.TabIndex = 0;
+            // 
+            // label6
+            // 
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label6.ForeColor = System.Drawing.Color.Gold;
+            this.label6.Location = new System.Drawing.Point(451, 25);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(102, 24);
+            this.label6.TabIndex = 12;
+            this.label6.Text = "of points";
+            this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.ForeColor = System.Drawing.Color.Gold;
+            this.progressBar1.Location = new System.Drawing.Point(454, 52);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(99, 13);
+            this.progressBar1.TabIndex = 1;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.ForeColor = System.Drawing.SystemColors.Control;
+            this.label5.Location = new System.Drawing.Point(194, 48);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(42, 13);
+            this.label5.TabIndex = 11;
+            this.label5.Text = "Multiply";
+            this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label4
+            // 
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label4.ForeColor = System.Drawing.Color.Gold;
+            this.label4.Location = new System.Drawing.Point(451, 9);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(102, 15);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "COUNT";
+            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // label3
             // 
@@ -215,13 +263,14 @@
             this.trackBarDY.AccessibleDescription = "";
             this.trackBarDY.LargeChange = 1;
             this.trackBarDY.Location = new System.Drawing.Point(188, 0);
+            this.trackBarDY.Maximum = 8;
             this.trackBarDY.Minimum = 1;
             this.trackBarDY.MinimumSize = new System.Drawing.Size(60, 50);
             this.trackBarDY.Name = "trackBarDY";
             this.trackBarDY.Size = new System.Drawing.Size(60, 45);
             this.trackBarDY.TabIndex = 4;
             this.trackBarDY.TickStyle = System.Windows.Forms.TickStyle.Both;
-            this.trackBarDY.Value = 3;
+            this.trackBarDY.Value = 4;
             this.trackBarDY.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBarDY_MouseUp);
             // 
             // trackBarDZ
@@ -282,17 +331,6 @@
             this.trackBarSize.Value = 4;
             this.trackBarSize.MouseUp += new System.Windows.Forms.MouseEventHandler(this.trackBarSize_MouseUp);
             // 
-            // label4
-            // 
-            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label4.ForeColor = System.Drawing.Color.Gold;
-            this.label4.Location = new System.Drawing.Point(451, 24);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(102, 15);
-            this.label4.TabIndex = 10;
-            this.label4.Text = "COUNT";
-            this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -302,9 +340,9 @@
             this.ClientSize = new System.Drawing.Size(624, 442);
             this.Controls.Add(this.ControlPanel);
             this.DoubleBuffered = true;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(640, 480);
             this.Name = "MainForm";
-            this.ShowIcon = false;
             this.Text = "Demo \"The Running Road\"";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.Resize += new System.EventHandler(this.MainForm_Resize);
@@ -343,6 +381,9 @@
         private System.Windows.Forms.RadioButton radioButton5;
         private System.Windows.Forms.RadioButton radioButton6;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ProgressBar progressBar1;
+        private System.Windows.Forms.Label label6;
     }
 }
 
