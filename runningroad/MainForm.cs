@@ -13,9 +13,10 @@ namespace runningroad
 {
     public partial class MainForm : Form
     {
-        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, zz1, zz2, i, j, nn, trigger0 = 0, trigger1 = 0, choice1 = 1, choice2 = 4, pointnumber, mmmm;
-        public double xcenter, ycenter, a1, n, dzy, mply, x, z, z2, dx, dz;
-        public int[,] myArr = new int[1000000, 3];
+        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, trigger0 = 0, trigger1 = 0, choice1 = 1, choice2 = 4, pointnumber, mmmm;
+        public double xcenter, ycenter, a1, n, dzy, mply, x, z, dx, dz;
+        public const int arrmaxmemb = 3000000;
+        public int[,] myArr = new int[arrmaxmemb, 2];
 
         private void radioButton5_CheckedChanged(object sender, EventArgs e)
         {
@@ -47,13 +48,12 @@ namespace runningroad
             choice1 = 2;
         }
 
-        public Pen myPen1 = new Pen(Color.Aquamarine, 1);
+        public Pen myPen1 = new Pen(Color.DarkGoldenrod, 1);
         public Pen myPen2 = new Pen(Color.OrangeRed, 1);
         public Pen myPen3 = new Pen(Color.Gold, 1);
         public Pen myPen;
         public Graphics g = null;
         public Thread threadrunit;
-        //public Thread threaddrawarrpoints;
 
         public MainForm()
         {
@@ -65,16 +65,11 @@ namespace runningroad
             a1 = 25.0;
             mply = 40.0;
             dz = 0.1;
-            threadrunit = new Thread(RunIt);
-            threadrunit.Priority = ThreadPriority.AboveNormal;
-            //threaddrawarrpoints = new Thread(drawarrpoints);
-            //threaddrawarrpoints.Priority = ThreadPriority.Highest;
         }
 
         public void trackBarOpacity_MouseUp(object sender, MouseEventArgs e)
         {
             MainForm.ActiveForm.Opacity = Convert.ToDouble(trackBarOpacity.Value) / 10.0;
-            ActiveForm.Refresh();
         }
 
         private void MainForm_Resize(object sender, EventArgs e)
@@ -111,27 +106,33 @@ namespace runningroad
             switch (trigger0)
             {
                 case 1:
+                    ActiveForm.Refresh();
+                    progressBar1.Value = 0;
+                    pointnumber = 0;
+                    mmmm = 0;
                     buttonStartStop.Text = "Click to Abort";
+                    threadrunit = new Thread(RunIt)
+                    {
+                        Priority = ThreadPriority.Normal
+                    };
                     threadrunit.Start();
                     break;
 
                 case 2:
                     threadrunit.Abort();
                     label4.Text = Convert.ToString(mmmm);
-                    buttonStartStop.Text = "Aborted";
+                    buttonStartStop.Text = "Aborted. Press for drawing from array";
                     break;
 
                 case 3:
                     buttonStartStop.Text = "Drawing from array";
-                    //threaddrawarrpoints.Start();
                     drawarrpoints();
                     buttonStartStop.Text = "Drawed from array";
+                    trigger0 = 0;
                     break;
 
                 case 4:
-                    trigger0 = 3;
-                    buttonStartStop.Text = "Normally stopped. Reopen app.";
-                    buttonStartStop.Enabled = false;
+                    trigger0 = 0;
                     break;
             }
         }
@@ -146,7 +147,7 @@ namespace runningroad
             int[] lhor = new int[stopx+1];
 
             xcenter = (Convert.ToDouble(stopx) - Convert.ToDouble(startx)) / 2.0 + 1.0;
-            ycenter = (Convert.ToDouble(stopy) - Convert.ToDouble(starty));
+            ycenter = Convert.ToDouble(stopy) - Convert.ToDouble(starty) + 30.0;
 
             for (i = 0; i < stopx + 1; i++)
             {
@@ -225,19 +226,17 @@ namespace runningroad
             if (xx2 > stopx) { choice1 = 3; }
             if (yy1 > stopy) { choice1 = 3; }
             if (yy2 > stopy) { choice1 = 3; }
-            if ((xx1 == xx2) && (yy1 == yy2) && (z == z2)) { choice1 = 3; }
+            if ((xx1 == xx2) && (yy1 == yy2)) { choice1 = 3; }
             
             switch (choice1)
             {
                 case 1:
                     pointnumber += 1;
-                    if (pointnumber < 1000000)
+                    if (pointnumber < arrmaxmemb)
                     {
                         myArr[pointnumber, 0] = xx1;
                         myArr[pointnumber, 1] = yy1;
-                        myArr[pointnumber, 2] = Convert.ToInt32(z);
                     }
-                    
                     //g.DrawEllipse(myPen, xx1, yy1, 1, 0);
                     //g.DrawEllipse(myPen, xx2, yy2, 0, 1);
                     g.DrawLine(myPen, xx1, yy1, xx2, yy2);
@@ -248,11 +247,10 @@ namespace runningroad
                     if ((yy1 <= stopy) && (yy1 >= starty) && (yy2 <= stopy) && (yy2 >= starty) && (xx1 <= stopx) && (xx1 >= startx) && (xx2 <= stopx) && (xx2 >= startx) && (xx1 != xx2) && (yy1 != yy2))
                     {
                         pointnumber += 1;
-                        if (pointnumber < 1000000)
+                        if (pointnumber < arrmaxmemb)
                         {
                             myArr[pointnumber, 0] = xx1;
                             myArr[pointnumber, 1] = yy1;
-                            myArr[pointnumber, 2] = Convert.ToInt32(z);
                         }
                         //g.DrawEllipse(myPen, xx1, yy1, 1, 0);
                         //g.DrawEllipse(myPen, xx2, yy2, 0, 1);
@@ -265,7 +263,6 @@ namespace runningroad
                     choice1 = chchoice;
                     break;
             }
-            z2 = z;
         }
 
         public double func(double x, double z, double dzy, int i)
@@ -313,27 +310,17 @@ namespace runningroad
         public void drawarrpoints()
         {
             ActiveForm.Refresh();
-            if (mmmm > 1000000) { mmmm = 1000000; }
+            if (mmmm > arrmaxmemb) { mmmm = arrmaxmemb; }
             xx2 = myArr[0, 0];
             yy2 = myArr[0, 1];
-            //zz2 = myArr[0, 2];
             g.DrawEllipse(myPen2, xx2, yy2, 1, 0);
 
             for (i = 0; i < mmmm; i++)
             {
                 xx1 = myArr[i, 0];
                 yy1 = myArr[i, 1];
-                //zz1 = myArr[i, 2];
-                //if ((xx1 == xx2) && (yy1 == yy2) && (zz1 == zz2))
-                //{ }
-                //else
-                //{
-                    g.DrawEllipse(myPen2, xx1, yy1, 1, 0);
-                //    xx2 = xx1;
-                //    yy2 = yy1;
-                //    zz2 = zz1;
-                    progressBar1.Value = Convert.ToInt32(Convert.ToDouble(i) / Convert.ToDouble(mmmm) * 100.0);
-                //}
+                g.DrawEllipse(myPen2, xx1, yy1, 1, 0);
+                progressBar1.Value = Convert.ToInt32(Convert.ToDouble(i) / Convert.ToDouble(mmmm) * 100.0);
             }
         }
     }
