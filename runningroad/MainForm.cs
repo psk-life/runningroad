@@ -8,51 +8,54 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
+using System.Reflection.Emit;
+using Microsoft.SqlServer.Server;
 
 namespace runningroad
 {
     public partial class MainForm : Form
     {
-        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, trigger0 = 0, trigger1 = 0, choice1 = 1, choice2 = 4, pointnumber, mmmm;
+        public delegate void EmptyMethodHandler();
+        public int startx, starty, stopx, stopy, xx1, xx2, yy1, yy2, xx3, yy3, i, j, nn, buttonStartStop_State, trigger_Draw, choice1, choice2, pointnumber, mmmm;
         public double xcenter, ycenter, a1, n, dzy, mply, x, z, dx, dz;
         public const int arrmaxmemb = 3000000;
         public int[,] myArr = new int[arrmaxmemb, 2];
 
-        private void radioButton5_CheckedChanged(object sender, EventArgs e)
+        enum btStartStop_State
         {
-            choice2 = 5;
+            Reset = 0,
+            Start = 1,
+            Abort = 2,
+        }
+        
+        enum trDraw_State
+        {
+            Draw = 0,
+            Abort = 1,
         }
 
-        private void radioButton6_CheckedChanged(object sender, EventArgs e)
+        enum ch1_state
         {
-            choice2 = 6;
+            Solid = 0,
+            Ghost = 1,
+            Terminator = 2,
         }
 
-        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        enum ch2_state
         {
-            choice2 = 3;
-        }
-
-        private void radioButton4_CheckedChanged(object sender, EventArgs e)
-        {
-            choice2 = 4;
-        }
-
-        private void radioButton1_CheckedChanged(object sender, EventArgs e)
-        {
-            choice1 = 1;
-        }
-
-        private void radioButton2_CheckedChanged(object sender, EventArgs e)
-        {
-            choice1 = 2;
+            Func1 = 1,
+            Func2 = 2,
+            Func3 = 3,
+            Func4 = 4,
         }
 
         public Pen myPen1 = new Pen(Color.DarkGoldenrod, 1);
         public Pen myPen2 = new Pen(Color.OrangeRed, 1);
         public Pen myPen3 = new Pen(Color.Gold, 1);
         public Pen myPen;
+
         public Graphics g = null;
+
         public Thread threadrunit;
 
         public MainForm()
@@ -65,74 +68,78 @@ namespace runningroad
             a1 = 25.0;
             mply = 40.0;
             dz = 0.1;
+
+            choice1 = (int)ch1_state.Solid;
+            choice2 = (int)ch2_state.Func1;
+
+            buttonStartStop_State = (int)btStartStop_State.Start;
+            trigger_Draw = (int)trDraw_State.Draw;
         }
 
-        public void trackBarOpacity_MouseUp(object sender, MouseEventArgs e)
-        {
-            MainForm.ActiveForm.Opacity = Convert.ToDouble(trackBarOpacity.Value) / 10.0;
-        }
 
-        private void MainForm_Resize(object sender, EventArgs e)
+        private void buttonStartStop_KeyUp(object sender, KeyEventArgs e)
         {
-            ActiveForm.Refresh();
-        }
-
-        public void trackBarDZ_MouseUp(object sender, MouseEventArgs e)
-        {
-            dz = Convert.ToDouble(trackBarDZ.Value) / 50.0;
-        }
-
-        public void trackBarDY_MouseUp(object sender, MouseEventArgs e)
-        {
-            mply = Convert.ToDouble(trackBarDY.Value) * 10.0;
-        }
-
-        public void trackBarSize_MouseUp(object sender, MouseEventArgs e)
-        {
-            MainForm.ActiveForm.Width = trackBarSize.Value * 160;
-            MainForm.ActiveForm.Height = trackBarSize.Value * 120;
-            ActiveForm.Refresh();
+            if (e.KeyCode == Keys.Enter)
+            {
+                buttonStartStop_MouseClick(null, null);
+            }
         }
 
         private void buttonStartStop_MouseClick(object sender, MouseEventArgs e)
         {
-            trigger0 += 1;
-            startx = 0;
-            stopx = MainForm.ActiveForm.Width - 17;
-            starty = 65;
-            stopy = MainForm.ActiveForm.Height - 104;
-            g = this.CreateGraphics();
-
-            switch (trigger0)
+            switch (buttonStartStop_State)
             {
-                case 1:
-                    ActiveForm.Refresh();
-                    progressBar1.Value = 0;
-                    pointnumber = 0;
-                    mmmm = 0;
-                    buttonStartStop.Text = "Click to Abort";
-                    threadrunit = new Thread(RunIt)
+                case (int)btStartStop_State.Start:
+                    buttonStartStop_State = (int)btStartStop_State.Abort;
+                    startx = 0;
+                    stopx = this.ClientRectangle.Width;
+                    starty = 0;
+                    stopy = this.Height - ControlPanel.Height - (this.Height - this.ClientRectangle.Size.Height);
+                    g = this.CreateGraphics();
+
+                    if (!chBox_Array)
                     {
-                        Priority = ThreadPriority.Normal
-                    };
-                    threadrunit.Start();
+                        this.Refresh();
+                        progressBar1.Value = 0;
+                        pointnumber = 0;
+                        mmmm = 0;
+                        buttonStartStop.Text = "Instant drawing. Press to Abort";
+
+                        threadrunit = new Thread(RunIt)
+                        {
+                            Priority = ThreadPriority.Normal
+                        };
+                        threadrunit.Start();
+                    }
+                    else
+                    {
+                        this.Refresh();
+                        progressBar1.Value = 0;
+                        pointnumber = 0;
+                        mmmm = 0;
+                        buttonStartStop.Text = "Drawing from array. Press to Abort";
+
+                        threadrunit = new Thread(RunIt)
+                        {
+                            Priority = ThreadPriority.Normal
+                        };
+                        threadrunit.Start();
+                    }
                     break;
 
-                case 2:
+                case (int)btStartStop_State.Abort:
+                    buttonStartStop_State = (int)btStartStop_State.Reset;
                     threadrunit.Abort();
+                    
+                    buttonStartStop.Text = "Aborted. Press to Draw";
                     label4.Text = Convert.ToString(mmmm);
-                    buttonStartStop.Text = "Aborted. Press for drawing from array";
+
                     break;
 
-                case 3:
-                    buttonStartStop.Text = "Drawing from array";
-                    drawarrpoints();
-                    buttonStartStop.Text = "Drawed from array";
-                    trigger0 = 0;
-                    break;
-
-                case 4:
-                    trigger0 = 0;
+                case (int)btStartStop_State.Reset:
+                    label4.Text = "Count";
+                    buttonStartStop.Text = "Press again to Draw";
+                    buttonStartStop_State = (int)btStartStop_State.Start;
                     break;
             }
         }
@@ -147,7 +154,7 @@ namespace runningroad
             int[] lhor = new int[stopx+1];
 
             xcenter = (Convert.ToDouble(stopx) - Convert.ToDouble(startx)) / 2.0 + 1.0;
-            ycenter = Convert.ToDouble(stopy) - Convert.ToDouble(starty) + 30.0;
+            ycenter = (Convert.ToDouble(stopy) - Convert.ToDouble(starty)) / 2.0 + 150.0;
 
             for (i = 0; i < stopx + 1; i++)
             {
@@ -170,7 +177,7 @@ namespace runningroad
 
                 for (j = 1; j <= stopx; j++)
                 {
-                    trigger1 = 0;
+                    trigger_Draw = (int)trDraw_State.Draw;
                     x = -2.0 * Math.PI + Convert.ToDouble(j) * dx;
                     xx3 = xpix(x, dx);
                     yy3 = ypix(x, z, dzy, i, mply);
@@ -190,10 +197,19 @@ namespace runningroad
                     {
                         xx1 = Convert.ToInt32(xx3 + xcenter);
                         yy1 = Convert.ToInt32(ycenter - yy3);
-                        trigger1 = 1;
+                        trigger_Draw = (int)trDraw_State.Abort;
                     }
                 }
             }
+
+            if (chBox_Array)
+            {
+                drawarrpoints();
+            }
+
+            BeginInvoke(new EmptyMethodHandler(delegate { label4.Text = Convert.ToString(mmmm); }));
+            BeginInvoke(new EmptyMethodHandler(delegate { buttonStartStop.Text = "Finished. Press to Draw"; }));
+            buttonStartStop_State = (int)btStartStop_State.Reset;
         }
 
         public void mline(double xx, double yy)
@@ -202,15 +218,15 @@ namespace runningroad
             yy2 = Convert.ToInt32(ycenter - yy);
             drawchoice();
 
-            switch (trigger1)
+            switch (trigger_Draw)
             {
-                case 0:
+                case (int)trDraw_State.Draw:
                     xx1 = xx2;
                     yy1 = yy2;
                     break;
 
-                case 1:
-                     break;
+                case (int)trDraw_State.Abort:
+                    break;
             }
         }
 
@@ -218,32 +234,35 @@ namespace runningroad
         {
             int chchoice;
             chchoice = choice1;
-            if (xx1 < 0) { choice1 = 3; }
-            if (xx2 < 0) { choice1 = 3; }
-            if (yy1 < 65) { choice1 = 3; }
-            if (yy2 < 65) { choice1 = 3; }
-            if (xx1 > stopx) { choice1 = 3; }
-            if (xx2 > stopx) { choice1 = 3; }
-            if (yy1 > stopy) { choice1 = 3; }
-            if (yy2 > stopy) { choice1 = 3; }
-            if ((xx1 == xx2) && (yy1 == yy2)) { choice1 = 3; }
+            if (xx1 < 0) { choice1 = (int)ch1_state.Terminator; }
+            if (xx2 < 0) { choice1 = (int)ch1_state.Terminator; }
+            if (yy1 < 65) { choice1 = (int)ch1_state.Terminator; }
+            if (yy2 < 65) { choice1 = (int)ch1_state.Terminator; }
+            if (xx1 > stopx) { choice1 = (int)ch1_state.Terminator; }
+            if (xx2 > stopx) { choice1 = (int)ch1_state.Terminator; }
+            if (yy1 > stopy) { choice1 = (int)ch1_state.Terminator; }
+            if (yy2 > stopy) { choice1 = (int)ch1_state.Terminator; }
+            if ((xx1 == xx2) && (yy1 == yy2)) { choice1 = (int)ch1_state.Terminator; }
             
             switch (choice1)
             {
-                case 1:
+                case (int)ch1_state.Solid:
                     pointnumber += 1;
                     if (pointnumber < arrmaxmemb)
                     {
                         myArr[pointnumber, 0] = xx1;
                         myArr[pointnumber, 1] = yy1;
+                        mmmm += 1;
+                        if (!chBox_Array)
+                        {
+                            //g.DrawEllipse(myPen, xx1, yy1, 1, 0);
+                            //g.DrawEllipse(myPen, xx2, yy2, 0, 1);
+                            g.DrawLine(myPen, xx1, yy1, xx2, yy2);
+                        }
                     }
-                    //g.DrawEllipse(myPen, xx1, yy1, 1, 0);
-                    //g.DrawEllipse(myPen, xx2, yy2, 0, 1);
-                    g.DrawLine(myPen, xx1, yy1, xx2, yy2);
-                    mmmm += 1;
                     break;
 
-                case 2:
+                case (int)ch1_state.Ghost:
                     if ((yy1 <= stopy) && (yy1 >= starty) && (yy2 <= stopy) && (yy2 >= starty) && (xx1 <= stopx) && (xx1 >= startx) && (xx2 <= stopx) && (xx2 >= startx) && (xx1 != xx2) && (yy1 != yy2))
                     {
                         pointnumber += 1;
@@ -251,15 +270,18 @@ namespace runningroad
                         {
                             myArr[pointnumber, 0] = xx1;
                             myArr[pointnumber, 1] = yy1;
+                            mmmm += 1;
+                            if (!chBox_Array)
+                            {
+                                //g.DrawEllipse(myPen, xx1, yy1, 1, 0);
+                                //g.DrawEllipse(myPen, xx2, yy2, 0, 1);
+                                g.DrawLine(myPen, xx1, yy1, xx2, yy2);
+                            }
                         }
-                        //g.DrawEllipse(myPen, xx1, yy1, 1, 0);
-                        //g.DrawEllipse(myPen, xx2, yy2, 0, 1);
-                        g.DrawLine(myPen, xx1, yy1, xx2, yy2);
-                        mmmm += 1;
                     }
                     break;
 
-                case 3:
+                case (int)ch1_state.Terminator:
                     choice1 = chchoice;
                     break;
             }
@@ -271,19 +293,19 @@ namespace runningroad
 
             switch (choice2)
             {
-                case 3:
+                case (int)ch2_state.Func1:
                     f = 8.0 * Math.Cos(1.2 * Math.Cos(x * x + z * z)) / (Math.Sqrt(x * x + z * z) + 1.0) + dzy * Convert.ToDouble(i);
                     return (f);
 
-                case 4:
+                case (int)ch2_state.Func2:
                     f = 8.0 * Math.Cos(1.2 * Math.Sqrt(x * x + z * z)) / (Math.Sqrt(x * x + z * z) + 1.0) + dzy * Convert.ToDouble(i);
                     return (f);
 
-                case 5:
+                case (int)ch2_state.Func3:
                     f = 4.0 * Math.Sqrt(x * x * z * z) * (1.2 * Math.Cos(x * x + z * z)) / (Math.Sqrt(x * x + z * z) + 1.0) + dzy * Convert.ToDouble(i);
                     return (f);
 
-                case 6:
+                case (int)ch2_state.Func4:
                     f = 2.0 * Math.Sin(x * x * z * z) * (1.2 * Math.Cos(x * x + z * z)) / (Math.Sqrt(x * x + z * z) + 1.0) + dzy * Convert.ToDouble(i);
                     return (f);
 
@@ -309,19 +331,167 @@ namespace runningroad
 
         public void drawarrpoints()
         {
-            ActiveForm.Refresh();
             if (mmmm > arrmaxmemb) { mmmm = arrmaxmemb; }
+
+            int maxY = myArr[0, 1];
+            int minY = myArr[0, 1];
+            for (i = 0; i < mmmm; i++)
+            {
+                if (maxY < myArr[i, 1])
+                {
+                    maxY = myArr[i, 1];
+                }
+
+                if (minY > myArr[i, 1])
+                {
+                    minY = myArr[i, 1];
+                }
+            }
+            if (maxY > this.ClientRectangle.Height)
+            {
+                maxY = this.ClientRectangle.Height;
+            }
+            if (minY < this.ControlPanel.Height)
+            {
+                minY = this.ControlPanel.Height;
+            }
+
+            int rez = maxY - minY;
+            int half_rez = 0;
+            int Yappend = 0;
+            if (rez > this.ClientRectangle.Height)
+            {
+                rez = this.ClientRectangle.Height;
+            }
+            half_rez = Convert.ToInt32((Convert.ToDouble(this.ClientRectangle.Height) - Convert.ToDouble(rez)) / 2.0);
+
+            switch (Yadjust)
+            {
+                case 0:
+                    Yappend = -rez;
+                    break;
+                case 1:
+                    Yappend = -half_rez;
+                    break;
+                case 2:
+                    Yappend = 0;
+                    break;
+                case 3:
+                    Yappend = half_rez;
+                    break;
+                case 4:
+                    Yappend = rez;
+                    break;
+            }
+
             xx2 = myArr[0, 0];
-            yy2 = myArr[0, 1];
+            yy2 = myArr[0, 1] + Yappend;
             g.DrawEllipse(myPen2, xx2, yy2, 1, 0);
 
             for (i = 0; i < mmmm; i++)
             {
                 xx1 = myArr[i, 0];
-                yy1 = myArr[i, 1];
+                yy1 = myArr[i, 1] + Yappend;
                 g.DrawEllipse(myPen2, xx1, yy1, 1, 0);
-                progressBar1.Value = Convert.ToInt32(Convert.ToDouble(i) / Convert.ToDouble(mmmm) * 100.0);
+                BeginInvoke(new EmptyMethodHandler(delegate { progressBar1.Value = Convert.ToInt32(Convert.ToDouble(i) / Convert.ToDouble(mmmm) * 100.0); }));
             }
         }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            this.Refresh();
+        }
+
+        private void trackBarOpacity_ValueChanged(object sender, EventArgs e)
+        {
+            this.Opacity = Convert.ToDouble(trackBarOpacity.Value) / 10.0;
+        }
+
+        public void trackBarOpacity_MouseUp(object sender, MouseEventArgs e)
+        {
+            this.Opacity = Convert.ToDouble(trackBarOpacity.Value) / 10.0;
+        }
+
+        private void trackBarDY_ValueChanged(object sender, EventArgs e)
+        {
+            mply = Convert.ToDouble(trackBarDY.Value) * 10.0;
+        }
+
+        public void trackBarDY_MouseUp(object sender, MouseEventArgs e)
+        {
+            mply = Convert.ToDouble(trackBarDY.Value) * 10.0;
+        }
+
+        int Yadjust = 2;
+        private void trackBar_Yadjust_ValueChanged(object sender, EventArgs e)
+        {
+            Yadjust = trackBar_Yadjust.Value;
+        }
+
+        private void trackBar_Yadjust_MouseUp(object sender, MouseEventArgs e)
+        {
+            Yadjust = trackBar_Yadjust.Value;
+        }
+
+        private void trackBarDZ_ValueChanged(object sender, EventArgs e)
+        {
+            dz = Convert.ToDouble(trackBarDZ.Value) / 50.0;
+        }
+
+        public void trackBarDZ_MouseUp(object sender, MouseEventArgs e)
+        {
+            dz = Convert.ToDouble(trackBarDZ.Value) / 50.0;
+        }
+
+        public void trackBarSize_MouseUp(object sender, MouseEventArgs e)
+        {
+            this.Width = trackBarSize.Value * 160;
+            this.Height = trackBarSize.Value * 120;
+            this.Refresh();
+        }
+
+        private void trackBarSize_ValueChanged(object sender, EventArgs e)
+        {
+            this.Width = trackBarSize.Value * 160;
+            this.Height = trackBarSize.Value * 120;
+            this.Refresh();
+        }
+
+        bool chBox_Array = false;
+        private void checkBox_Array_CheckedChanged(object sender, EventArgs e)
+        {
+            chBox_Array = !chBox_Array;
+        }
+
+        private void radioButton_Solid_CheckedChanged(object sender, EventArgs e)
+        {
+            choice1 = (int)ch1_state.Solid;
+        }
+
+        private void radioButton_Ghost_CheckedChanged(object sender, EventArgs e)
+        {
+            choice1 = (int)ch1_state.Ghost;
+        }
+
+        private void radioButton_Func1_CheckedChanged(object sender, EventArgs e)
+        {
+            choice2 = (int)ch2_state.Func1;
+        }
+
+        private void radioButton_Func2_CheckedChanged(object sender, EventArgs e)
+        {
+            choice2 = (int)ch2_state.Func2;
+        }
+
+        private void radioButton_Func3_CheckedChanged(object sender, EventArgs e)
+        {
+            choice2 = (int)ch2_state.Func3;
+        }
+
+        private void radioButton_Func4_CheckedChanged(object sender, EventArgs e)
+        {
+            choice2 = (int)ch2_state.Func4;
+        }
+
     }
 }
